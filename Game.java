@@ -19,22 +19,23 @@ public class Game{
 		newGame.addPlayer("ewan", false);
 		newGame.addPlayer("naoya", false);
 		//newGame.removePlayer();
-		System.out.println("lobby before: " + newGame.lobby.toString());
+		/*System.out.println("lobby before: " + newGame.lobby.toString());
 		System.out.println("team1 before: " + newGame.team1.toString());
-		System.out.println("team2 before: " + newGame.team2.toString());
+		System.out.println("team2 before: " + newGame.team2.toString());*/
 		newGame.chooseCaptains(newGame.lobby);
-		System.out.println("team1 after picking captains: " + newGame.team1.toString());
-		System.out.println("team2 after picking captains: " + newGame.team2.toString());
+		/*System.out.println("team1 after picking captains: " + newGame.team1.toString());
+		System.out.println("team2 after picking captains: " + newGame.team2.toString());*/
 		newGame.captainChoice(newGame.team1.get(0), newGame.team2.get(0), newGame.lobby.get(0), newGame.lobby);
 		//newGame.addPlayerToTeam(newGame.lobby.get(0), newGame.team1);
-		System.out.println("lobby after: " + newGame.lobby.toString());
+		/*System.out.println("lobby after: " + newGame.lobby.toString());
 		System.out.println("team1 after: " + newGame.team1.toString());
-		System.out.println("team2 after: " + newGame.team2.toString());
-		/*for(int i = 0; i < 8; i++){
-			System.out.println(newGame.lobby.get(i).getName());
-			System.out.println(newGame.lobby.get(i).isCaptain);
-			System.out.println(newGame.lobby.get(i).toString());
-		}*/
+		System.out.println("team2 after: " + newGame.team2.toString());*/
+		for(int i = 0; i < 5; i++){
+			System.out.println("Team 1:" + newGame.team1.get(i).getName());
+			System.out.println("Team 2:" + newGame.team2.get(i).getName());
+			/*System.out.println(newGame.lobby.get(i).isCaptain);
+			System.out.println(newGame.lobby.get(i).toString());*/
+		}
 	}
 
 	public Game(){
@@ -75,12 +76,12 @@ public class Game{
 			/*Random random = new Random();
 			random = */
 			if(captain1Choice == true){
-				this.addPlayerToTeam(lobby.get(0), team1);
-				this.removePlayer(lobby.get(0), lobby);
+				addPlayerToTeam(lobby.get(0), team1);
+				removePlayer(lobby.get(0), lobby);
 				captain1Choice = false;
 			}else{
-				this.addPlayerToTeam(this.lobby.get(0), team2);
-				this.removePlayer(lobby.get(0), lobby);
+				addPlayerToTeam(lobby.get(0), team2);
+				removePlayer(lobby.get(0), lobby);
 				captain1Choice = true;
 			}
 		}
@@ -95,17 +96,18 @@ public class Game{
 		int first, second = 0;
 		first = random.nextInt(10);
 		lobby.get(first).isCaptain = true;
-		this.addPlayerToTeam(lobby.get(first), team1);
-		this.removePlayer(lobby.get(first), lobby);
+		addPlayerToTeam(lobby.get(first), team1);
+		removePlayer(lobby.get(first), lobby);
 		int i = 0;
 		while(i < 10){
-			second = random.nextInt(10);
+			second = random.nextInt(9);
 			if(second != first) break;
 			else i++;
 		}
+		//System.out.println("second: " + second);
 		lobby.get(second).isCaptain = true;
-		this.addPlayerToTeam(lobby.get(second), team2);
-		this.removePlayer(lobby.get(first), lobby);
+		addPlayerToTeam(lobby.get(second), team2);
+		removePlayer(lobby.get(second), lobby);
 	}
 
 	public void passCaptain(bigPlayer currentCaptain, bigPlayer futureCaptain){
