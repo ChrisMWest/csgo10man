@@ -5,50 +5,52 @@ public class Game{
 	List<bigPlayer> lobby = new ArrayList<bigPlayer>();
 	List<bigPlayer> team1 = new ArrayList<bigPlayer>();
 	List<bigPlayer> team2 = new ArrayList<bigPlayer>();
+	static Scanner in = new Scanner(System.in);
 
 	public static void main(String[] args) throws notCaptainException{
 		Game newGame = new Game();
-		newGame.addPlayer("Chris", false);
-		newGame.addPlayer("vernon", false);
-		newGame.addPlayer("Darwin", false);
-		newGame.addPlayer("Takuma", false);
-		newGame.addPlayer("Anu", false);
-		newGame.addPlayer("jaay", false);
-		newGame.addPlayer("gordon", false);
-		newGame.addPlayer("john", false);
-		newGame.addPlayer("ewan", false);
-		newGame.addPlayer("naoya", false);
-		//newGame.removePlayer();
+		int i = 0;
+		while(newGame.lobby.size() != 10){
+			System.out.println("Please enter your name: ");
+			String s = in.nextLine().trim();
+			while(s.length() == 0){
+				System.out.println("Please enter a valid name: ");
+				s = in.nextLine().trim();
+			}
+			newGame.addPlayer(s, false, i);
+			i++;
+		}
+		System.out.println("The lobby is now full");
+		newGame.chooseCaptains(newGame.lobby);
+		newGame.captainChoice(newGame.team1.get(0), newGame.team2.get(0), newGame.lobby);		/*for(int j = 0; j<5; j++){
+			System.out.println("Team 1: " + newGame.team1.get(i).getName());
+			System.out.println("Team 2: " + newGame.team2.get(i).getName());
+		}*/
+		
 		/*System.out.println("lobby before: " + newGame.lobby.toString());
 		System.out.println("team1 before: " + newGame.team1.toString());
-		System.out.println("team2 before: " + newGame.team2.toString());*/
+		System.out.println("team2 before: " + newGame.team2.toString());
 		newGame.chooseCaptains(newGame.lobby);
-		/*System.out.println("team1 after picking captains: " + newGame.team1.toString());
-		System.out.println("team2 after picking captains: " + newGame.team2.toString());*/
+		System.out.println("team1 after picking captains: " + newGame.team1.toString());
+		System.out.println("team2 after picking captains: " + newGame.team2.toString());
 		newGame.captainChoice(newGame.team1.get(0), newGame.team2.get(0), newGame.lobby.get(0), newGame.lobby);
-		//newGame.addPlayerToTeam(newGame.lobby.get(0), newGame.team1);
-		/*System.out.println("lobby after: " + newGame.lobby.toString());
+		newGame.addPlayerToTeam(newGame.lobby.get(0), newGame.team1);
+		System.out.println("lobby after: " + newGame.lobby.toString());
 		System.out.println("team1 after: " + newGame.team1.toString());
-		System.out.println("team2 after: " + newGame.team2.toString());*/
+		System.out.println("team2 after: " + newGame.team2.toString());
 		for(int i = 0; i < 5; i++){
 			System.out.println("Team 1:" + newGame.team1.get(i).getName());
 			System.out.println("Team 2:" + newGame.team2.get(i).getName());
-			/*System.out.println(newGame.lobby.get(i).isCaptain);
-			System.out.println(newGame.lobby.get(i).toString());*/
-		}
+			System.out.println(newGame.lobby.get(i).isCaptain);
+			System.out.println(newGame.lobby.get(i).toString());
+		}*/
 	}
 
 	public Game(){
 	}
 
-	/*public Game(String[] thisLobby, String[] thisTeam1, String[] thisTeam2){
-		this.lobby = thisLobby;
-		this.team1 = thisTeam1;
-		this.team2 = thisTeam2;
-	}*/
-
-	public void addPlayer(String playerName, boolean captain){
-		bigPlayer newPlayer = new bigPlayer(playerName, captain);
+	public void addPlayer(String playerName, boolean iscaptain, int id){
+		bigPlayer newPlayer = new bigPlayer(playerName, iscaptain, id);
 		lobby.add(newPlayer);
 	}
 
@@ -64,25 +66,190 @@ public class Game{
 		}
 	}
 
-	public void captainChoice(bigPlayer captain1, bigPlayer captain2, bigPlayer player, List<bigPlayer> lobby) throws notCaptainException{
+	public void captainChoice(bigPlayer captain1, bigPlayer captain2, List<bigPlayer> lobby) throws notCaptainException{
 		if(captain1.isCaptain == false){
 			throw new notCaptainException("this person is not a captain");
 		}
 		if(captain2.isCaptain == false){
 			throw new notCaptainException("this person is not a captain");
 		}
+		System.out.println("Captains are choosing teams");
 		boolean captain1Choice = true;
+		boolean captain2Pick2 = true;
+		boolean captain1Pick2 = false;
 		while(!this.lobby.isEmpty()){
-			/*Random random = new Random();
-			random = */
+			HashSet<String> setOfPlayers = new HashSet<String>();
+			for(int i = 0; i < lobby.size(); i++){
+				setOfPlayers.add(lobby.get(i).getName());
+			}
 			if(captain1Choice == true){
-				addPlayerToTeam(lobby.get(0), team1);
-				removePlayer(lobby.get(0), lobby);
+				for(int i = 0; i<lobby.size(); i++){
+					System.out.println(lobby.get(i).getName() + " - " + lobby.get(i).getId());
+				}
+				bigPlayer temp = new bigPlayer();
+				System.out.println("Captain 1, please choose a player using their name:");
+				String s = in.nextLine();
+				boolean isIncluded = false;
+				while(isIncluded == false){
+					if(setOfPlayers.contains(s)){
+						isIncluded = true;
+						break;
+					}else{
+						System.out.print("Please enter a valid name: ");
+						s = in.nextLine();
+					}
+				}
+				for(int i = 0; i < lobby.size(); i++){
+					if(lobby.get(i).getName().equals(s)){
+						temp = lobby.get(i);
+						break;
+					}
+				}
+				addPlayerToTeam(temp, team1);
+				removePlayer(temp, lobby);
 				captain1Choice = false;
-			}else{
-				addPlayerToTeam(lobby.get(0), team2);
-				removePlayer(lobby.get(0), lobby);
+				System.out.print("This is the current Lobby ");
+				for(int i = 0; i < lobby.size(); i++){
+					System.out.print(lobby.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team1 ");
+				for(int i = 0; i < team1.size(); i++){
+					System.out.print(team1.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team2 ");
+				for(int i = 0; i < team2.size(); i++){
+					System.out.print(team2.get(i).getName() + " ");
+				}
+				System.out.println();
+			}if(captain1Pick2 == true){
+				for(int i = 0; i<lobby.size(); i++){
+					System.out.println(lobby.get(i).getName() + " - " + lobby.get(i).getId());
+				}
+				bigPlayer temp = new bigPlayer();
+				System.out.println("Captain 1, please choose a player using their name:");
+				String s = in.nextLine();
+				boolean isIncluded = false;
+				while(isIncluded == false){
+					if(setOfPlayers.contains(s)){
+						isIncluded = true;
+						break;
+					}else{
+						System.out.print("Please enter a valid name: ");
+						s = in.nextLine();
+					}
+				}
+				for(int i = 0; i < lobby.size(); i++){
+					if(lobby.get(i).getName().equals(s)){
+						temp = lobby.get(i);
+						break;
+					}
+				}
+				addPlayerToTeam(temp, team1);
+				removePlayer(temp, lobby);
+				captain1Choice = false;
+				captain1Pick2 = false;
+				System.out.print("This is the current Lobby ");
+				for(int i = 0; i < lobby.size(); i++){
+					System.out.print(lobby.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team1 ");
+				for(int i = 0; i < team1.size(); i++){
+					System.out.print(team1.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team2 ");
+				for(int i = 0; i < team2.size(); i++){
+					System.out.print(team2.get(i).getName() + " ");
+				}
+				System.out.println();
+			}
+			if(captain1Choice == false){
+				for(int i = 0; i<lobby.size(); i++){
+					System.out.println(lobby.get(i).getName() + " - " + lobby.get(i).getId());
+				}
+				bigPlayer temp = new bigPlayer();
+				System.out.println("Captain 2, please choose a player using their name:");
+				String s = in.nextLine();
+				boolean isIncluded = false;
+				while(isIncluded == false){
+					if(setOfPlayers.contains(s)){
+						isIncluded = true;
+						break;
+					}else{
+						System.out.print("Please enter a valid name: ");
+						s = in.nextLine();
+					}
+				}
+				for(int i = 0; i < lobby.size(); i++){
+					if(lobby.get(i).getName().equals(s)){
+						temp = lobby.get(i);
+						break;
+					}
+				}
+				addPlayerToTeam(temp, team2);
+				removePlayer(temp, lobby);
 				captain1Choice = true;
+				System.out.print("This is the current Lobby ");
+				for(int i = 0; i < lobby.size(); i++){
+					System.out.print(lobby.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team1 ");
+				for(int i = 0; i < team1.size(); i++){
+					System.out.print(team1.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team2 ");
+				for(int i = 0; i < team2.size(); i++){
+					System.out.print(team2.get(i).getName() + " ");
+				}
+				System.out.println();
+			}
+			if(captain2Pick2 == true){
+				for(int i = 0; i<lobby.size(); i++){
+					System.out.println(lobby.get(i).getName() + " - " + lobby.get(i).getId());
+				}
+				bigPlayer temp = new bigPlayer();
+				System.out.println("Captain 2, please choose a player using their name:");
+				String s = in.nextLine();
+				boolean isIncluded = false;
+				while(isIncluded == false){
+					if(setOfPlayers.contains(s)){
+						isIncluded = true;
+						break;
+					}else{
+						System.out.print("Please enter a valid name: ");
+						s = in.nextLine();
+					}
+				}
+				for(int i = 0; i < lobby.size(); i++){
+					if(lobby.get(i).getName().equals(s)){
+						temp = lobby.get(i);
+						break;
+					}
+				}
+				addPlayerToTeam(temp, team2);
+				removePlayer(temp, lobby);
+				captain2Pick2 = false;
+				captain1Pick2 = true;
+				System.out.print("This is the current Lobby ");
+				for(int i = 0; i < lobby.size(); i++){
+					System.out.print(lobby.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team1 ");
+				for(int i = 0; i < team1.size(); i++){
+					System.out.print(team1.get(i).getName() + " ");
+				}
+				System.out.println();
+				System.out.print("This is the current Team2 ");
+				for(int i = 0; i < team2.size(); i++){
+					System.out.print(team2.get(i).getName() + " ");
+				}
+				System.out.println();
 			}
 		}
 	}
@@ -141,13 +308,22 @@ public class Game{
 class bigPlayer{
 	String name = "";
 	boolean isCaptain = false;
+	int playerId = 0;
 
-	bigPlayer(String playerName, boolean captain){
+	bigPlayer(){
+	}
+
+	bigPlayer(String playerName, boolean captain, int id){
 		this.name = playerName;
 		this.isCaptain = captain;
+		this.playerId = id;
 	}
 
 	public String getName(){
 		return this.name;
+	}
+
+	public int getId(){
+		return this.playerId;
 	}
 }
