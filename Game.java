@@ -1,57 +1,77 @@
 import java.util.*;
+import java.io.*;
 
 public class Game{
 
-	List<bigPlayer> lobby = new ArrayList<bigPlayer>();
-	List<bigPlayer> team1 = new ArrayList<bigPlayer>();
-	List<bigPlayer> team2 = new ArrayList<bigPlayer>();
+	List<Player> lobby = new ArrayList<Player>();
+	List<Player> team1 = new ArrayList<Player>();
+	List<Player> team2 = new ArrayList<Player>();
+	List<Map> mapList = new ArrayList<Map>();
+	List<Player> team1MapPickers = new ArrayList<Player>();
+	List<Player> team2MapPickers = new ArrayList<Player>();
+	static Scanner in = new Scanner(System.in);
+	static int MAX_LOBBY_SIZE = 10;
+	static int MAX_TEAM_SIZE = 5;
 
-	public static void main(String[] args) throws notCaptainException{
+	public static void main(String[] args) throws FileNotFoundException, notCaptainException{
 		Game newGame = new Game();
-		newGame.addPlayer("Chris", false);
-		newGame.addPlayer("vernon", false);
-		newGame.addPlayer("Darwin", false);
-		newGame.addPlayer("Takuma", false);
-		newGame.addPlayer("Anu", false);
-		newGame.addPlayer("jaay", false);
-		newGame.addPlayer("gordon", false);
-		newGame.addPlayer("john", false);
-		newGame.addPlayer("ewan", false);
-		newGame.addPlayer("naoya", false);
-		//newGame.removePlayer();
-		System.out.println("lobby before: " + newGame.lobby.toString());
-		System.out.println("team1 before: " + newGame.team1.toString());
-		System.out.println("team2 before: " + newGame.team2.toString());
+		int i = 0;
+		while(newGame.lobby.size() != MAX_LOBBY_SIZE){
+
+			String s = "";
+			while(s.length() == 0){
+				System.out.println("Please enter a valid name: ");
+				s = in.nextLine().trim();
+			}
+			newGame.addPlayer(s, false, i);
+			i++;
+		}
+		System.out.println("The lobby is now full");
 		newGame.chooseCaptains(newGame.lobby);
-		System.out.println("team1 after picking captains: " + newGame.team1.toString());
-		System.out.println("team2 after picking captains: " + newGame.team2.toString());
-		newGame.captainChoice(newGame.team1.get(0), newGame.team2.get(0), newGame.lobby.get(0), newGame.lobby);
-		//newGame.addPlayerToTeam(newGame.lobby.get(0), newGame.team1);
-		System.out.println("lobby after: " + newGame.lobby.toString());
-		System.out.println("team1 after: " + newGame.team1.toString());
-		System.out.println("team2 after: " + newGame.team2.toString());
-		/*for(int i = 0; i < 8; i++){
-			System.out.println(newGame.lobby.get(i).getName());
-			System.out.println(newGame.lobby.get(i).isCaptain);
-			System.out.println(newGame.lobby.get(i).toString());
-		}*/
+		newGame.captainPickPlayers(newGame.team1.get(0), newGame.team2.get(0), newGame.lobby);
+		System.out.println("Available Competitive Maps");
+		try{
+			File file = new File("/home/chris/Desktop/csgogame/Maps.txt");
+			Scanner sc = new Scanner(file);
+			while(sc.hasNext()){
+				newGame.addMap(sc.next().trim());
+			}
+		}
+		catch(IOException e){
+			System.out.println("file not found");
+		}
+		for(int j = 0; j < newGame.mapList.size(); j++){
+			System.out.print(newGame.mapList.get(j).getMapName() + " ");
+		}
+		System.out.println();
+		//2 players from team 1
+		newGame.selectPlayersPickingMaps(newGame.team1, newGame.team1MapPickers);
+		//2 players from team 2
+		newGame.selectPlayersPickingMaps(newGame.team2, newGame.team2MapPickers);
+		System.out.println("These players will be picking the maps:");
+		System.out.println(newGame.team1MapPickers.get(0).getName() + " " +  newGame.team1MapPickers.get(1).getName());
+		System.out.println(newGame.team2MapPickers.get(0).getName() + " " +  newGame.team2MapPickers.get(1).getName());
+		//Players choosing maps to ban
+		newGame.mapBanning(newGame.team1MapPickers.get(0));
+		newGame.mapBanning(newGame.team2MapPickers.get(0));
+		newGame.mapBanning(newGame.team2MapPickers.get(1));
+		newGame.mapBanning(newGame.team1MapPickers.get(1));
+		System.out.println("These are the available maps after the ban:");
+		Collections.shuffle(newGame.mapList);
+		for(int j = 0; j < newGame.mapList.size(); j++){
+			System.out.print(newGame.mapList.get(j).getMapName() + " ");
+		}
 	}
 
 	public Game(){
 	}
 
-	/*public Game(String[] thisLobby, String[] thisTeam1, String[] thisTeam2){
-		this.lobby = thisLobby;
-		this.team1 = thisTeam1;
-		this.team2 = thisTeam2;
-	}*/
-
-	public void addPlayer(String playerName, boolean captain){
-		bigPlayer newPlayer = new bigPlayer(playerName, captain);
+	public void addPlayer(String playerName, boolean isCaptain, int id){
+		Player newPlayer = new Player(playerName, isCaptain, id);
 		lobby.add(newPlayer);
 	}
 
-	public void removePlayer(bigPlayer player, List<bigPlayer> placement){
+	public void removePlayer(Player player, List<Player> placement){
 		int placementLength = placement.size();
 		int i = 0;
 		while(i < placementLength){
@@ -63,52 +83,153 @@ public class Game{
 		}
 	}
 
-	public void captainChoice(bigPlayer captain1, bigPlayer captain2, bigPlayer player, List<bigPlayer> lobby) throws notCaptainException{
+	public void addMap(String map){
+		Map newMap = new Map(map);
+		mapList.add(newMap);
+	}
+
+	public void selectPlayersPickingMaps(List<Player> team, List<Player> teamMapPickers){
+		Random rand = new Random();
+		int first = rand.nextInt(MAX_TEAM_SIZE);
+		teamMapPickers.add(team.get(first));
+		int second = rand.nextInt(MAX_TEAM_SIZE);
+		while(second == first){
+			second = rand.nextInt(MAX_TEAM_SIZE);
+		}
+		teamMapPickers.add(team.get(second));
+	}
+
+	public void mapBanning(Player playerSelectingMapToBan){
+		System.out.println(playerSelectingMapToBan.getName() + " - Please Select a map to ban from the following: ");
+		for(int j = 0; j < mapList.size(); j++){
+			System.out.print(mapList.get(j).getMapName() + " ");
+		}
+		System.out.println();
+		HashSet<String> setOfPlayers = new HashSet<String>();
+		for(int i = 0; i < mapList.size(); i++){
+			setOfPlayers.add(mapList.get(i).getMapName());
+		}
+		String s = in.nextLine();
+		boolean isIncluded = false;
+		while(isIncluded == false){
+			if(setOfPlayers.contains(s)){
+				isIncluded = true;
+				break;
+			}else{
+				System.out.print("Please enter a valid map name: ");
+				s = in.nextLine();
+			}
+		}
+		for(int i = 0; i < mapList.size(); i++){
+			if(mapList.get(i).getMapName().equals(s)){
+				System.out.println(mapList.get(i).getMapName() + " has been banned.");
+				mapList.remove(mapList.get(i));
+				break;
+			}
+		}
+	}
+
+	public void captainPickPlayersHelper(HashSet<String> setOfPlayers, int captainNum, List<Player> team){
+		for(int i = 0; i<lobby.size(); i++){
+			System.out.println(lobby.get(i).getName() + " - " + lobby.get(i).getId());
+		}
+		System.out.println("Captain " + captainNum + ", please choose a player using their name:");
+		String s = in.nextLine();
+		boolean isIncluded = false;
+		while(isIncluded == false){
+			if(setOfPlayers.contains(s)){
+				isIncluded = true;
+				break;
+			}else{
+				System.out.print("Please enter a valid name: ");
+				s = in.nextLine();
+			}
+		}
+		for(int i = 0; i < lobby.size(); i++){
+			if(lobby.get(i).getName().equals(s)){
+				Player temp = lobby.get(i);
+				addPlayerToTeam(temp, team);
+				removePlayer(temp, lobby);
+				break;
+			}
+		}
+		System.out.print("This is the current Lobby ");
+		for(int i = 0; i < lobby.size(); i++){
+			System.out.print(lobby.get(i).getName() + " ");
+		}
+		System.out.println();
+		System.out.print("This is the current Team1 ");
+		for(int i = 0; i < team1.size(); i++){
+			System.out.print(team1.get(i).getName() + " ");
+		}
+		System.out.println();
+		System.out.print("This is the current Team2 ");
+		for(int i = 0; i < team2.size(); i++){
+			System.out.print(team2.get(i).getName() + " ");
+		}
+		System.out.println();
+	}
+
+	public void captainPickPlayers(Player captain1, Player captain2, List<Player> lobby) throws notCaptainException{
 		if(captain1.isCaptain == false){
 			throw new notCaptainException("this person is not a captain");
 		}
 		if(captain2.isCaptain == false){
 			throw new notCaptainException("this person is not a captain");
 		}
+		System.out.println("Captains are choosing teams:");
 		boolean captain1Choice = true;
+		boolean captain2Pick2 = true;
+		boolean captain1Pick2 = false;
 		while(!this.lobby.isEmpty()){
-			/*Random random = new Random();
-			random = */
+			HashSet<String> setOfPlayers = new HashSet<String>();
+			for(int i = 0; i < lobby.size(); i++){
+				setOfPlayers.add(lobby.get(i).getName());
+			}
 			if(captain1Choice == true){
-				this.addPlayerToTeam(lobby.get(0), team1);
-				this.removePlayer(lobby.get(0), lobby);
+				captainPickPlayersHelper(setOfPlayers, 1, team1);
 				captain1Choice = false;
-			}else{
-				this.addPlayerToTeam(this.lobby.get(0), team2);
-				this.removePlayer(lobby.get(0), lobby);
+			}if(captain1Pick2 == true){
+				captainPickPlayersHelper(setOfPlayers, 1, team1);
+				captain1Choice = false;
+				captain1Pick2 = false;
+			}
+			if(captain1Choice == false){
+				captainPickPlayersHelper(setOfPlayers, 2, team2);
 				captain1Choice = true;
+			}
+			if(captain2Pick2 == true){
+				captainPickPlayersHelper(setOfPlayers, 2, team2);
+				captain2Pick2 = false;
+				captain1Pick2 = true;
 			}
 		}
 	}
 
-	public void addPlayerToTeam(bigPlayer player, List<bigPlayer> team){
+	public void addPlayerToTeam(Player player, List<Player> team){
 		team.add(player);
 	}
 
-	public void chooseCaptains(List<bigPlayer> lobby){
+	public void chooseCaptains(List<Player> lobby){
 		Random random = new Random();
 		int first, second = 0;
-		first = random.nextInt(10);
+		first = random.nextInt(MAX_LOBBY_SIZE);
 		lobby.get(first).isCaptain = true;
-		this.addPlayerToTeam(lobby.get(first), team1);
-		this.removePlayer(lobby.get(first), lobby);
+		addPlayerToTeam(lobby.get(first), team1);
+		removePlayer(lobby.get(first), lobby);
 		int i = 0;
-		while(i < 10){
-			second = random.nextInt(10);
+		while(i < MAX_LOBBY_SIZE){
+			second = random.nextInt(9);
 			if(second != first) break;
 			else i++;
 		}
+		//System.out.println("second: " + second);
 		lobby.get(second).isCaptain = true;
-		this.addPlayerToTeam(lobby.get(second), team2);
-		this.removePlayer(lobby.get(first), lobby);
+		addPlayerToTeam(lobby.get(second), team2);
+		removePlayer(lobby.get(second), lobby);
 	}
 
-	public void passCaptain(bigPlayer currentCaptain, bigPlayer futureCaptain){
+	public void passCaptain(Player currentCaptain, Player futureCaptain){
 		currentCaptain.isCaptain = false;
 		futureCaptain.isCaptain = true;
 	}
@@ -136,16 +257,34 @@ public class Game{
 	}*/
 }
 
-class bigPlayer{
+class Map{
+	String mapName = "";
+
+	Map(String map){
+		this.mapName = map;
+	}
+
+	public String getMapName(){
+		return this.mapName;
+	}
+}
+
+class Player{
 	String name = "";
 	boolean isCaptain = false;
+	int playerId = 0;
 
-	bigPlayer(String playerName, boolean captain){
+	Player(String playerName, boolean captain, int id){
 		this.name = playerName;
 		this.isCaptain = captain;
+		this.playerId = id;
 	}
 
 	public String getName(){
 		return this.name;
+	}
+
+	public int getId(){
+		return this.playerId;
 	}
 }
