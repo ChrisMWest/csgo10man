@@ -1,4 +1,5 @@
 import java.util.*;
+import java.io.*;
 
 public class Game{
 
@@ -9,13 +10,15 @@ public class Game{
 	List<Player> team1MapPickers = new ArrayList<Player>();
 	List<Player> team2MapPickers = new ArrayList<Player>();
 	static Scanner in = new Scanner(System.in);
+	static int MAX_LOBBY_SIZE = 10;
+	static int MAX_TEAM_SIZE = 5;
 
-	public static void main(String[] args) throws notCaptainException{
+	public static void main(String[] args) throws FileNotFoundException, notCaptainException{
 		Game newGame = new Game();
 		int i = 0;
-		while(newGame.lobby.size() != 10){
-			System.out.println("Please enter your name: ");
-			String s = in.nextLine().trim();
+		while(newGame.lobby.size() != MAX_LOBBY_SIZE){
+
+			String s = "";
 			while(s.length() == 0){
 				System.out.println("Please enter a valid name: ");
 				s = in.nextLine().trim();
@@ -27,13 +30,16 @@ public class Game{
 		newGame.chooseCaptains(newGame.lobby);
 		newGame.captainPickPlayers(newGame.team1.get(0), newGame.team2.get(0), newGame.lobby);
 		System.out.println("Available Competitive Maps");
-		newGame.addMap("Mirage");
-		newGame.addMap("Inferno");
-		newGame.addMap("Overpass");
-		newGame.addMap("Nuke");
-		newGame.addMap("Train");
-		newGame.addMap("Dust2");
-		newGame.addMap("Cache");
+		try{
+			File file = new File("/home/chris/Desktop/csgogame/Maps.txt");
+			Scanner sc = new Scanner(file);
+			while(sc.hasNext()){
+				newGame.addMap(sc.next().trim());
+			}
+		}
+		catch(IOException e){
+			System.out.println("file not found");
+		}
 		for(int j = 0; j < newGame.mapList.size(); j++){
 			System.out.print(newGame.mapList.get(j).getMapName() + " ");
 		}
@@ -51,9 +57,6 @@ public class Game{
 		newGame.mapBanning(newGame.team2MapPickers.get(1));
 		newGame.mapBanning(newGame.team1MapPickers.get(1));
 		System.out.println("These are the available maps after the ban:");
-		for(int j = 0; j < newGame.mapList.size(); j++){
-			System.out.print(newGame.mapList.get(j).getMapName() + " ");
-		}
 		Collections.shuffle(newGame.mapList);
 		for(int j = 0; j < newGame.mapList.size(); j++){
 			System.out.print(newGame.mapList.get(j).getMapName() + " ");
@@ -63,8 +66,8 @@ public class Game{
 	public Game(){
 	}
 
-	public void addPlayer(String playerName, boolean iscaptain, int id){
-		Player newPlayer = new Player(playerName, iscaptain, id);
+	public void addPlayer(String playerName, boolean isCaptain, int id){
+		Player newPlayer = new Player(playerName, isCaptain, id);
 		lobby.add(newPlayer);
 	}
 
@@ -87,11 +90,11 @@ public class Game{
 
 	public void selectPlayersPickingMaps(List<Player> team, List<Player> teamMapPickers){
 		Random rand = new Random();
-		int first = rand.nextInt(5);
+		int first = rand.nextInt(MAX_TEAM_SIZE);
 		teamMapPickers.add(team.get(first));
-		int second = rand.nextInt(5);
+		int second = rand.nextInt(MAX_TEAM_SIZE);
 		while(second == first){
-			second = rand.nextInt(5);
+			second = rand.nextInt(MAX_TEAM_SIZE);
 		}
 		teamMapPickers.add(team.get(second));
 	}
@@ -130,7 +133,6 @@ public class Game{
 		for(int i = 0; i<lobby.size(); i++){
 			System.out.println(lobby.get(i).getName() + " - " + lobby.get(i).getId());
 		}
-		Player temp = new Player();
 		System.out.println("Captain " + captainNum + ", please choose a player using their name:");
 		String s = in.nextLine();
 		boolean isIncluded = false;
@@ -145,12 +147,12 @@ public class Game{
 		}
 		for(int i = 0; i < lobby.size(); i++){
 			if(lobby.get(i).getName().equals(s)){
-				temp = lobby.get(i);
+				Player temp = lobby.get(i);
+				addPlayerToTeam(temp, team);
+				removePlayer(temp, lobby);
 				break;
 			}
 		}
-		addPlayerToTeam(temp, team);
-		removePlayer(temp, lobby);
 		System.out.print("This is the current Lobby ");
 		for(int i = 0; i < lobby.size(); i++){
 			System.out.print(lobby.get(i).getName() + " ");
@@ -211,12 +213,12 @@ public class Game{
 	public void chooseCaptains(List<Player> lobby){
 		Random random = new Random();
 		int first, second = 0;
-		first = random.nextInt(10);
+		first = random.nextInt(MAX_LOBBY_SIZE);
 		lobby.get(first).isCaptain = true;
 		addPlayerToTeam(lobby.get(first), team1);
 		removePlayer(lobby.get(first), lobby);
 		int i = 0;
-		while(i < 10){
+		while(i < MAX_LOBBY_SIZE){
 			second = random.nextInt(9);
 			if(second != first) break;
 			else i++;
@@ -258,9 +260,6 @@ public class Game{
 class Map{
 	String mapName = "";
 
-	Map(){
-	}
-
 	Map(String map){
 		this.mapName = map;
 	}
@@ -274,9 +273,6 @@ class Player{
 	String name = "";
 	boolean isCaptain = false;
 	int playerId = 0;
-
-	Player(){
-	}
 
 	Player(String playerName, boolean captain, int id){
 		this.name = playerName;
